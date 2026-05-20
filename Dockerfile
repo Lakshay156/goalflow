@@ -9,52 +9,57 @@ RUN apk add --no-cache \
     curl \
     zip \
     unzip \
+    dos2unix \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     oniguruma-dev \
-    postgresql-dev \
-    supervisor
+    postgresql16-dev \
+    supervisor \
+    shadow
 
 # ── PHP extensions ──────────────────────────────────────────────
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo \
         pdo_pgsql \
-        pgsql \
         gd \
         opcache \
         bcmath \
         mbstring \
-        exif \
         pcntl
 
 # ── Composer ────────────────────────────────────────────────────
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# ── App ─────────────────────────────────────────────────────────
+# ── App source ─────────────────────────────────────────────────
 WORKDIR /var/www/html
 
+# Copy composer files first for layer caching
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts --no-autoloader
+
+# Copy rest of app
 COPY . .
 
-# Install PHP deps (no dev)
-RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
+# Finish composer autoloader
+RUN composer dump-autoload --no-dev --optimize
 
-# Install Node deps & build assets
-RUN npm ci && npm run build
+# Build frontend assets
+RUN npm ci && npm run build && rm -rf node_modules
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+# ── Permissions ─────────────────────────────────────────────────
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 storage bootstrap/cache
 
-# ── Config ──────────────────────────────────────────────────────
-COPY docker/nginx.conf      /etc/nginx/nginx.conf
+# ── Configs ─────────────────────────────────────────────────────
+COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# ── Startup ─────────────────────────────────────────────────────
+# Fix Windows line endings on startup script, then make executable
 COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
+RUN dos2unix /start.sh && chmod +x /start.sh
 
 EXPOSE 10000
 
