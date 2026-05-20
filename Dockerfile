@@ -50,6 +50,7 @@ RUN npm ci && npm run build && rm -rf node_modules
 
 # ── Permissions ─────────────────────────────────────────────────
 RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 storage bootstrap/cache
 
