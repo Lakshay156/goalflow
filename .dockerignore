@@ -16,3 +16,6 @@ README.md
 docker-compose*.yml
 .editorconfig
 .prettierrc
+# Vite dev server file — must NOT be in production image
+public/hot
+public/storage

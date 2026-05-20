@@ -45,8 +45,8 @@ COPY . .
 # Finish composer autoloader
 RUN composer dump-autoload --no-dev --optimize
 
-# Build frontend assets
-RUN npm ci && npm run build && rm -rf node_modules
+# Build frontend assets — then remove dev-server hints
+RUN npm ci && npm run build && rm -rf node_modules && rm -f public/hot
 
 # ── Permissions ─────────────────────────────────────────────────
 RUN mkdir -p storage/framework/{sessions,views,cache} \
