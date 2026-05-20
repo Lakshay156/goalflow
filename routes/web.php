@@ -13,6 +13,9 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
+// Health check — no DB, no auth — always returns 200 instantly
+Route::get('/health', fn() => response('OK', 200));
+
 // Landing page
 Route::get('/', [HomeController::class, 'index'])->name('home');
 

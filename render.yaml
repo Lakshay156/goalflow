@@ -12,7 +12,7 @@ services:
     region: oregon
     branch: main
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: APP_NAME
         value: GoalFlow
