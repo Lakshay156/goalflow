@@ -21,13 +21,6 @@ FROM serversideup/php:8.2-fpm-nginx
 ENV WEB_DOCUMENT_ROOT=/var/www/html/public
 ENV PHP_OPCACHE_ENABLE=1
 
-# Switch to root to install PostgreSQL client extension and configure permissions
-USER root
-RUN apt-get update \
-    && apt-get install -y php8.2-pgsql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Switch back to the non-root user that comes with the image
 USER www-data
 WORKDIR /var/www/html
